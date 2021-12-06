@@ -1,12 +1,12 @@
 import java.io.File
 
-class LanternfishSchool(initialState: List<Long>, private val reproductionTime: Int = 7) {
+class LanternfishSchool(fish: List<Int>, private val reproductionTime: Int = 7) {
     var age: Int = 0
         private set
 
     // Number of fish per remaining days to reproduction
     private var state: List<Long> = List(reproductionTime + 2) { index ->
-        initialState.count { it == index.toLong() }.toLong()
+        fish.count { it == index }.toLong()
     }
 
     val size: Long
@@ -25,18 +25,18 @@ class LanternfishSchool(initialState: List<Long>, private val reproductionTime: 
         }
 
         // Replace current state with new state
-        state = newState.toList()
+        state = newState
         age++
     }
 }
 
-fun readInitialState(): List<Long> {
+fun readFishList(): List<Int> {
     val line = File("inputs", "day6.txt").readLines().first()
-    return line.trim().split(',').map { it.toLong() }
+    return line.trim().split(',').map { it.toInt() }
 }
 
 fun main() {
-    val school = LanternfishSchool(readInitialState())
+    val school = LanternfishSchool(readFishList())
 
     while (school.age < 80) {
         school.nextDay()
