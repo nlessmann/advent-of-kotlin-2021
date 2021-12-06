@@ -19,7 +19,7 @@ class LanternfishSchool(initialState: List<Long>, private val reproductionTime: 
             if (index == 0) {
                 newState[reproductionTime - 1] += n
                 newState[reproductionTime + 1] += n
-            } else if (index > 0) {
+            } else {
                 newState[index - 1] += n
             }
         }
@@ -36,8 +36,7 @@ fun readInitialState(): List<Long> {
 }
 
 fun main() {
-    val initialState = readInitialState()
-    val school = LanternfishSchool(initialState)
+    val school = LanternfishSchool(readInitialState())
 
     while (school.age < 80) {
         school.nextDay()
