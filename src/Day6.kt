@@ -4,6 +4,7 @@ class LanternfishSchool(initialState: List<Long>, private val reproductionTime: 
     var age: Int = 0
         private set
 
+    // Number of fish per remaining days to reproduction
     private var state: List<Long> = List(reproductionTime + 2) { index ->
         initialState.count { it == index.toLong() }.toLong()
     }
@@ -12,6 +13,7 @@ class LanternfishSchool(initialState: List<Long>, private val reproductionTime: 
         get() = state.sum()
 
     fun nextDay() {
+        // Determine new state by moving fish from n to n - 1 days
         val newState = MutableList(state.size) { 0L }
         state.forEachIndexed { index, n ->
             if (index == 0) {
@@ -21,14 +23,21 @@ class LanternfishSchool(initialState: List<Long>, private val reproductionTime: 
                 newState[index - 1] += n
             }
         }
+
+        // Replace current state with new state
         state = newState.toList()
         age++
     }
 }
 
+fun readInitialState(): List<Long> {
+    val line = File("inputs", "day6.txt").readLines().first()
+    return line.trim().split(',').map { it.toLong() }
+}
+
 fun main() {
-    val values = File("inputs", "day6.txt").readLines().first().trim().split(',').map { it.toLong() }
-    val school = LanternfishSchool(values)
+    val initialState = readInitialState()
+    val school = LanternfishSchool(initialState)
 
     while (school.age < 80) {
         school.nextDay()
