@@ -1,11 +1,11 @@
 import java.io.File
 
-class LanternfishSchool(fish: List<Int>, private val reproductionTime: Int = 7) {
+class LanternfishSchool(fish: List<Int>, private val reproductionTime: Int = 7, private val childhood: Int = 2) {
     var age: Int = 0
         private set
 
     // Number of fish per remaining days to reproduction
-    private var state: List<Long> = List(reproductionTime + 2) { index ->
+    private var state: List<Long> = List(reproductionTime + childhood) { index ->
         fish.count { it == index }.toLong()
     }
 
@@ -18,7 +18,7 @@ class LanternfishSchool(fish: List<Int>, private val reproductionTime: Int = 7) 
         state.forEachIndexed { index, n ->
             if (index == 0) {
                 newState[reproductionTime - 1] += n
-                newState[reproductionTime + 1] += n
+                newState[reproductionTime + childhood - 1] += n
             } else {
                 newState[index - 1] += n
             }
