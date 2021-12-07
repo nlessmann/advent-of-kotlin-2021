@@ -18,11 +18,11 @@ class CrabSwarm(initialPositions: List<Int>) {
         return positions.sumOf { position -> (medianPosition - position).absoluteValue }
     }
 
-    fun computeMinimalWeightedFuelCost(searchWindow: Int = 10): Int {
+    fun computeMinimalWeightedFuelCost(): Int {
         // We are looking for a position near the centroid as that minimizes the sum of
         // squared distances, which is about what we need
         val centroid = positions.average().roundToInt()
-        val candidatePositions = centroid - searchWindow..centroid + searchWindow
+        val candidatePositions = listOf(centroid - 1, centroid, centroid + 1)
 
         return candidatePositions.minOf { targetPosition ->
             positions.sumOf { position ->
