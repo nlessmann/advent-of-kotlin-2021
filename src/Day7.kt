@@ -1,7 +1,6 @@
 import java.io.File
 import kotlin.math.absoluteValue
-import kotlin.math.ceil
-import kotlin.math.floor
+import kotlin.math.roundToInt
 
 class CrabSwarm(initialPositions: List<Int>) {
     private val positions = initialPositions.sorted()
@@ -10,24 +9,24 @@ class CrabSwarm(initialPositions: List<Int>) {
         // We are looking for the geometric median as that minimizes the sum of distances
         val medianIndex = positions.size / 2
 
-        val medianPositions = mutableListOf(positions[medianIndex])
+        var medianPosition = positions[medianIndex]
         if (positions.size % 2 == 0) {
-            medianPositions.add(positions[medianIndex - 1])
+            val realMedian = (medianPosition + positions[medianIndex - 1]).toDouble() / 2
+            medianPosition = realMedian.roundToInt()
         }
 
-        return medianPositions.minOf { targetPosition ->
-            positions.sumOf { position -> (targetPosition - position).absoluteValue }
-        }
+        return positions.sumOf { position -> (medianPosition - position).absoluteValue }
     }
 
-    fun computeWeightedMinimalFuelCost(): Int {
-        // We are looking for a position near the center of mass (where the sum of
-        // weighted distances is minimal)
-        val averagePosition = positions.average()
-        val averagePositions = listOf(floor(averagePosition), ceil(averagePosition))
-        return averagePositions.minOf { targetPosition ->
+    fun computeWeightedMinimalFuelCost(searchWindow: Int = 10): Int {
+        // We are looking for a position near the centroid as that minimizes the sum of
+        // squared distances, which is about what we need
+        val centroid = positions.average().roundToInt()
+        val candidatePositions = centroid - searchWindow..centroid + searchWindow
+
+        return candidatePositions.minOf { targetPosition ->
             positions.sumOf { position ->
-                (targetPosition.toInt() - position).absoluteValue.let { n ->
+                (targetPosition - position).absoluteValue.let { n ->
                     n * (n + 1) / 2
                 }
             }
@@ -36,7 +35,7 @@ class CrabSwarm(initialPositions: List<Int>) {
 }
 
 fun main() {
-    val positions = File("inputs", "day7.txt").readText().trim().split(",").map { it.toInt() }
+    val positions = File("inputs", "day7.txt").readText().split(",").map { it.toInt() }
     val swarm = CrabSwarm(positions)
     println("Solution 1: ${swarm.computeMinimalFuelCost()}")
     println("Solution 2: ${swarm.computeWeightedMinimalFuelCost()}")

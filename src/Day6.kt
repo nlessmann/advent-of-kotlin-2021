@@ -30,13 +30,9 @@ class LanternfishSchool(fish: List<Int>, private val reproductionTime: Int = 7, 
     }
 }
 
-fun readFishList(): List<Int> {
-    val line = File("inputs", "day6.txt").readLines().first()
-    return line.trim().split(',').map { it.toInt() }
-}
-
 fun main() {
-    val school = LanternfishSchool(readFishList())
+    val fish = File("inputs", "day6.txt").readText().split(',').map { it.toInt() }
+    val school = LanternfishSchool(fish)
 
     while (school.age < 80) {
         school.nextDay()
