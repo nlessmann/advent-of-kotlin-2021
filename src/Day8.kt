@@ -2,17 +2,19 @@ import java.io.File
 
 class Display(patterns: String) {
     companion object {
-        private val segment_expression = Regex("[a-g]+")
+        private val pattern = Regex("[a-g]+")
     }
 
     val inputs: List<String>
     val outputs: List<String>
 
     init {
-        val segments = segment_expression.findAll(patterns).map {
+        // Find all letter groups and sort characters
+        val segments = pattern.findAll(patterns).map {
             it.value.toCharArray().sorted().joinToString("")
         }.toList()
 
+        // First 10 are the inputs, rest are the outputs
         inputs = segments.subList(0, 10)
         outputs = segments.subList(10, segments.size)
     }
@@ -29,7 +31,7 @@ class Display(patterns: String) {
         // The top most segment is the only difference between 1 and 7
         val a = lut[7].single { it !in lut[1] }
 
-        // 3 has 5 segments, including all of 7
+        // 3 has 5 segments, including all of 7 (unlike 2 and 5)
         lut[3] = inputs.single {
             it.length == 5 && lut[7].all { c -> c in it }
         }
@@ -66,8 +68,7 @@ class Display(patterns: String) {
 }
 
 fun main() {
-    val inputs = File("inputs", "day8.txt").readLines()
-    val displays = List(inputs.size) { i -> Display(inputs[i]) }
+    val displays = File("inputs", "day8.txt").readLines().map { Display(it) }
 
     val easyDigitSegments = listOf(2, 3, 4, 7)
     val n = displays.sumOf { it.outputs.count { output -> output.length in easyDigitSegments } }
