@@ -8,12 +8,12 @@ class CrabSwarm(initialPositions: List<Int>) {
     fun computeMinimalFuelCost(): Int {
         // We are looking for the geometric median as that minimizes the sum of distances
         val medianIndex = positions.size / 2
-        var medianPosition = positions[medianIndex]
-        if (positions.size % 2 == 0) {
-            medianPosition = (
-                (medianPosition + positions[medianIndex - 1]) / 2.0
-            ).roundToInt()
-        }
+        val medianPosition =
+            if (positions.size % 2 == 0) {
+                ((positions[medianIndex] + positions[medianIndex - 1]) / 2.0).roundToInt()
+            } else {
+                positions[medianIndex]
+            }
 
         return positions.sumOf { position -> (medianPosition - position).absoluteValue }
     }
