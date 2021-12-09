@@ -48,7 +48,6 @@ fun measureBasins(heights: List<List<Int>>, seedPoints: List<Location>): List<In
 
         // Use region growing to measure size of the basin
         var currentBasinSize = 0
-
         while (queue.isNotEmpty()) {
             val currentLocation = queue.removeFirst()
             if (map[currentLocation.i][currentLocation.j] == 1) {
@@ -58,8 +57,8 @@ fun measureBasins(heights: List<List<Int>>, seedPoints: List<Location>): List<In
                 visitedLocations++
                 map[currentLocation.i][currentLocation.j] = 0
 
-                // Add unvisited neighbors to queue
-                queue.addAll(currentLocation.neighbors(map).filter { map[it.i][it.j] == 1 })
+                // Add neighbors to queue
+                queue.addAll(currentLocation.neighbors(map))
             }
         }
 
