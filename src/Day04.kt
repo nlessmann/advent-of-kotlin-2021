@@ -40,7 +40,7 @@ class BingoBoard(private val numbers: List<List<Int>>) {
 }
 
 fun main() {
-    val lines = File("inputs", "day4.txt").readLines()
+    val lines = File("inputs", "day04.txt").readLines()
 
     // Parse list of drawn numbers in the first line of the file
     val draws = lines.first().trim().split(",").map { it.toInt() }

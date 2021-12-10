@@ -69,7 +69,7 @@ fun measureBasins(heights: List<List<Int>>, seedPoints: List<Location>): List<In
 }
 
 fun main() {
-    val heights  = File("inputs", "day9.txt").readLines().map {
+    val heights  = File("inputs", "day09.txt").readLines().map {
         it.map { c -> c.digitToInt() }
     }
 

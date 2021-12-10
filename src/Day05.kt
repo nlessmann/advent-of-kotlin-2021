@@ -47,7 +47,7 @@ class Canvas(width: Int, height: Int) {
 }
 
 fun main() {
-    val lines = File("inputs", "day5.txt").readLines()
+    val lines = File("inputs", "day05.txt").readLines()
     val integers = Regex("[0-9]+")
     val coordinates = lines.map {
         Line(integers.findAll(it).map { match -> match.value.toInt() }.toList())

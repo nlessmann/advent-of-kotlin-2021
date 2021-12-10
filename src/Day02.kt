@@ -38,7 +38,7 @@ class Submarine2 : Submarine() {
 }
 
 fun main() {
-    val commands = File("inputs", "day2.txt").readLines()
+    val commands = File("inputs", "day02.txt").readLines()
     val submarines = listOf(Submarine(), Submarine2())
     submarines.forEachIndexed { index, submarine ->
         submarine.followCourse(commands)

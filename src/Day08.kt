@@ -68,7 +68,7 @@ class Display(patterns: String) {
 }
 
 fun main() {
-    val displays = File("inputs", "day8.txt").readLines().map { Display(it) }
+    val displays = File("inputs", "day08.txt").readLines().map { Display(it) }
 
     val easyDigitSegments = listOf(2, 3, 4, 7)
     val n = displays.sumOf { it.outputs.count { output -> output.length in easyDigitSegments } }

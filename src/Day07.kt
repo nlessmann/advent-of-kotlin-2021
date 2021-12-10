@@ -35,7 +35,7 @@ class CrabSwarm(initialPositions: List<Int>) {
 }
 
 fun main() {
-    val positions = File("inputs", "day7.txt").readText().split(",").map { it.toInt() }
+    val positions = File("inputs", "day07.txt").readText().split(",").map { it.toInt() }
     val swarm = CrabSwarm(positions)
     println("Solution 1: ${swarm.computeMinimalFuelCost()}")
     println("Solution 2: ${swarm.computeMinimalWeightedFuelCost()}")

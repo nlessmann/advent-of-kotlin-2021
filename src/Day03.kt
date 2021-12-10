@@ -27,7 +27,7 @@ fun filterWords(words: List<Word>, filter: (Int, Int) -> Boolean): Word {
 }
 
 fun main() {
-    val lines = File("inputs", "day3.txt").readLines()
+    val lines = File("inputs", "day03.txt").readLines()
     val report: List<Word> = lines.map { it.map { c -> Character.getNumericValue(c) } }
 
     // Number of bits per measurement
