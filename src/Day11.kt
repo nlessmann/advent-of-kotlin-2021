@@ -16,8 +16,10 @@ class DumboOctopus(initialEnergyLevel: Int) {
     }
 
     fun increaseEnergyLevel() {
+        if (flashed) return
+
         energyLevel++
-        if (!flashed && energyLevel > 9) {
+        if (energyLevel > 9) {
             flashes++
             flashed = true
             neighbors.forEach { it.increaseEnergyLevel() }
@@ -27,8 +29,8 @@ class DumboOctopus(initialEnergyLevel: Int) {
     fun reset() {
         if (flashed) {
             energyLevel = 0
+            flashed = false
         }
-        flashed = false
     }
 
     companion object {
