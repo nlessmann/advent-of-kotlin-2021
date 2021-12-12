@@ -1,6 +1,7 @@
 import java.io.File
 
 typealias Path = List<Cave>
+typealias MutablePath = MutableList<Cave>
 
 class Cave(val name: String) {
     private val connections = mutableSetOf<Cave>()
@@ -26,11 +27,12 @@ class Cave(val name: String) {
     }
 
     fun findPathsToEnd(allowSmallCaveRevisit: Boolean = false): List<Path> {
-        return findPathsToEnd(listOf(this), allowSmallCaveRevisit)
+        return findPathsToEnd(mutableListOf(), allowSmallCaveRevisit)
     }
 
-    private fun findPathsToEnd(path: Path, allowSmallCaveRevisit: Boolean): List<Path> {
+    private fun findPathsToEnd(path: MutablePath, allowSmallCaveRevisit: Boolean): List<Path> {
         // Add cave to path and check whether we've reached the end
+        path.add(this)
         if (isEnd()) {
             return listOf(path)
         }
@@ -47,9 +49,7 @@ class Cave(val name: String) {
         connections.forEach { cave ->
             val previousVisits = path.count { it == cave }
             if (cave.isBig() || previousVisits == 0 || (previousVisits == 1 && cave.isSmall() && canStillRevisit)) {
-                val pathWithNeighbor = path.toMutableList()
-                pathWithNeighbor.add(cave)
-                paths.addAll(cave.findPathsToEnd(pathWithNeighbor, allowSmallCaveRevisit))
+                paths.addAll(cave.findPathsToEnd(path.toMutableList(), allowSmallCaveRevisit))
             }
         }
         return paths
