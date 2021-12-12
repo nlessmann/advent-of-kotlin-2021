@@ -11,10 +11,6 @@ class DumboOctopus(initialEnergyLevel: Int) {
 
     private val neighbors = mutableSetOf<DumboOctopus>()
 
-    fun registerNeighbor(octopus: DumboOctopus) {
-        neighbors.add(octopus)
-    }
-
     fun increaseEnergyLevel() {
         if (flashed) return
 
@@ -42,7 +38,7 @@ class DumboOctopus(initialEnergyLevel: Int) {
             Offset(1, -1), Offset(1, 0), Offset(1, 1)
         )
 
-        fun fromFile(filename: String): List<DumboOctopus> {
+        fun gridFromFile(filename: String): List<DumboOctopus> {
             val input = File(filename).readLines()
             val octopuses = input.map { it.map { c -> DumboOctopus(c.digitToInt()) } }
             octopuses.forEachIndexed { i, o -> o.forEachIndexed { j, octopus ->
@@ -51,7 +47,7 @@ class DumboOctopus(initialEnergyLevel: Int) {
                     val y = j + it.y
 
                     if (x in octopuses.indices && y in o.indices) {
-                        octopus.registerNeighbor(octopuses[x][y])
+                        octopus.neighbors.add(octopuses[x][y])
                     }
                 }
             } }
@@ -61,7 +57,7 @@ class DumboOctopus(initialEnergyLevel: Int) {
 }
 
 fun main() {
-    val octopuses = DumboOctopus.fromFile("inputs/day11.txt")
+    val octopuses = DumboOctopus.gridFromFile("inputs/day11.txt")
 
     var step = 0
     var allFlashed = false
