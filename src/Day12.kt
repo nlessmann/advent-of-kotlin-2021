@@ -23,25 +23,22 @@ class Cave(val name: String) {
     }
 
     fun findPathsToEnd(allowSmallCaveRevisit: Boolean = false): List<List<Cave>> {
-        return findPathsToEnd(mutableListOf(), mutableMapOf(), allowSmallCaveRevisit)
+        return findPathsToEnd(mutableListOf(), allowSmallCaveRevisit)
     }
 
     private fun findPathsToEnd(
         path: MutableList<Cave>,
-        visits: MutableMap<Cave, Int>,
         allowSmallCaveRevisit: Boolean
     ): List<List<Cave>> {
         // Add cave to path and check whether we've reached the end
         path.add(this)
-        visits[this] = visits.getOrDefault(this, 0) + 1
-
         if (isEnd()) {
             return listOf(path)
         }
 
         // Determine whether we can still revisit a small cave
         val canStillRevisit = if (allowSmallCaveRevisit) {
-            visits.filter { (cave, n) -> cave.isSmall() && n > 1 }.isEmpty()
+            path.filter { it.isSmall() }.groupingBy { it }.eachCount().values.all { it == 1 }
         } else {
             false
         }
@@ -49,10 +46,10 @@ class Cave(val name: String) {
         // Send expeditions into all unvisited neighboring caves
         val paths = mutableListOf<List<Cave>>()
         neighbors.forEach { cave ->
-            val previousVisits = visits[cave] ?: 0
+            val previousVisits = path.count { it == cave }
             if (cave.isBig() || previousVisits == 0 || (canStillRevisit && cave.isSmall() && previousVisits < 2)) {
                 paths.addAll(
-                    cave.findPathsToEnd(path.toMutableList(), visits.toMutableMap(), allowSmallCaveRevisit)
+                    cave.findPathsToEnd(path.toMutableList(), allowSmallCaveRevisit)
                 )
             }
         }
