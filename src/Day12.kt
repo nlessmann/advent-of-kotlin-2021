@@ -1,10 +1,13 @@
 import java.io.File
 
+typealias Path = List<Cave>
+
 class Cave(val name: String) {
     private val connections = mutableSetOf<Cave>()
 
-    val neighbors: List<Cave>
-        get() = connections.sortedBy { it.name }
+    fun addConnection(cave: Cave) {
+        connections.add(cave)
+    }
 
     fun isStart(): Boolean {
         return name == "start"
@@ -22,72 +25,66 @@ class Cave(val name: String) {
         return !isStart() && !isEnd() && !isBig()
     }
 
-    fun findPathsToEnd(allowSmallCaveRevisit: Boolean = false): List<List<Cave>> {
-        return findPathsToEnd(mutableListOf(), allowSmallCaveRevisit)
+    fun findPathsToEnd(allowSmallCaveRevisit: Boolean = false): List<Path> {
+        return findPathsToEnd(listOf(this), allowSmallCaveRevisit)
     }
 
-    private fun findPathsToEnd(
-        path: MutableList<Cave>,
-        allowSmallCaveRevisit: Boolean
-    ): List<List<Cave>> {
+    private fun findPathsToEnd(path: Path, allowSmallCaveRevisit: Boolean): List<Path> {
         // Add cave to path and check whether we've reached the end
-        path.add(this)
         if (isEnd()) {
             return listOf(path)
         }
 
-        // Determine whether we can still revisit a small cave
+        // Determine whether a small cave has been visited twice already
         val canStillRevisit = if (allowSmallCaveRevisit) {
-            path.filter { it.isSmall() }.groupingBy { it }.eachCount().values.all { it == 1 }
+            path.filter { it.isSmall() }.let { it.size == it.distinct().size }
         } else {
             false
         }
 
         // Send expeditions into all unvisited neighboring caves
-        val paths = mutableListOf<List<Cave>>()
-        neighbors.forEach { cave ->
+        val paths = mutableListOf<Path>()
+        connections.forEach { cave ->
             val previousVisits = path.count { it == cave }
-            if (cave.isBig() || previousVisits == 0 || (canStillRevisit && cave.isSmall() && previousVisits < 2)) {
-                paths.addAll(
-                    cave.findPathsToEnd(path.toMutableList(), allowSmallCaveRevisit)
-                )
+            if (cave.isBig() || previousVisits == 0 || (previousVisits == 1 && cave.isSmall() && canStillRevisit)) {
+                val pathWithNeighbor = path.toMutableList()
+                pathWithNeighbor.add(cave)
+                paths.addAll(cave.findPathsToEnd(pathWithNeighbor, allowSmallCaveRevisit))
             }
         }
         return paths
     }
+}
 
-    companion object {
-        fun graphFromFile(filename: String): Cave {
-            val edgeDefinitions = File(filename).readLines().map {
-                it.trim().let { s ->
-                    Pair(s.substringBefore("-"), s.substringAfter("-"))
-                }
-            }
-
-            // Construct all vertices
-            val caves = mutableMapOf<String, Cave>()
-            val edges = edgeDefinitions.map {
-                Pair(
-                    caves.getOrPut(it.first) { Cave(it.first) },
-                    caves.getOrPut(it.second) { Cave(it.second) }
-                )
-            }
-
-            // Add edges
-            edges.forEach {
-                val (caveA, caveB) = it
-                caveA.connections.add(caveB)
-                caveB.connections.add(caveA)
-            }
-
-            // Return start vertex
-            return caves.values.single { it.isStart() }
+fun caveGraphFromFile(filename: String): Cave {
+    val edgeDefinitions = File(filename).readLines().map {
+        it.trim().let { s ->
+            Pair(s.substringBefore("-"), s.substringAfter("-"))
         }
     }
+
+    // Construct all vertices
+    val caves = mutableMapOf<String, Cave>()
+    val edges = edgeDefinitions.map {
+        Pair(
+            caves.getOrPut(it.first) { Cave(it.first) },
+            caves.getOrPut(it.second) { Cave(it.second) }
+        )
+    }
+
+    // Add edges
+    edges.forEach {
+        val (caveA, caveB) = it
+        caveA.addConnection(caveB)
+        caveB.addConnection(caveA)
+    }
+
+    // Return start vertex
+    return caves.values.single { it.isStart() }
 }
 
 fun main() {
-    val startCave = Cave.graphFromFile("inputs/day12.txt")
+    val startCave = caveGraphFromFile("inputs/day12.txt")
 
     val paths1 = startCave.findPathsToEnd()
     println("Solution 1: ${paths1.size}")
