@@ -1,5 +1,4 @@
 import java.io.File
-import kotlin.IllegalArgumentException
 
 class NavigationInstruction(line: String) {
     companion object {
