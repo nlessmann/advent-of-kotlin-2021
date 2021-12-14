@@ -37,7 +37,7 @@ class TransparentPaper(xy: List<String>) {
         for (y in 0..height) {
             println(
                 (0..width).map { x ->
-                    if (dots.any { it.x == x && it.y == y }) 'X' else ' '
+                    if (dots.any { it.x == x && it.y == y }) '█' else ' '
                 }.joinToString("")
             )
         }
