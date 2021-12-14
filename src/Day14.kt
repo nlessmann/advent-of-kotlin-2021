@@ -4,9 +4,6 @@ class Polymer(filename: String) {
     private val elements: List<Char>
     private val pairInsertionRules: Map<Pair<Char, Char>, Char>
 
-    private data class Evolution(val chars: Pair<Char, Char>, val steps: Int)
-    private val lut: MutableMap<Evolution, Map<Char, Long>> = mutableMapOf()
-
     init {
         val input = File(filename).readLines()
         elements = input[0].trim().toList()
@@ -15,6 +12,9 @@ class Polymer(filename: String) {
             valueTransform = { it[6] }
         )
     }
+
+    private data class Evolution(val chars: Pair<Char, Char>, val steps: Int)
+    private val lut: MutableMap<Evolution, Map<Char, Long>> = mutableMapOf()
 
     fun evolve(steps: Int): Long {
         // Count initial number of characters
@@ -34,11 +34,11 @@ class Polymer(filename: String) {
     }
 
     private fun evolvePair(chars: Pair<Char, Char>, steps: Int): Map<Char, Long> {
-        // Two characters and remaining evolution steps is a unique identifier
+        // Two characters and remaining evolution steps are a unique identifier
         val evolution = Evolution(chars, steps)
 
-        // Check whether this combination is still missing from the look-up-table
-        if (evolution !in lut) {
+        // Check whether this combination is still missing from the lookup table
+        return lut.getOrPut(evolution) {
             // Look up which additional character we need to insert
             val additionalChar = pairInsertionRules[chars]
                 ?: throw IllegalArgumentException("Illegal character")
@@ -55,10 +55,8 @@ class Polymer(filename: String) {
                 }
             }
 
-            lut[evolution] = counts
+            return counts
         }
-
-        return lut[evolution] ?: throw IllegalStateException()
     }
 }
 
