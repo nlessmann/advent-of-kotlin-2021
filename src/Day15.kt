@@ -1,35 +1,38 @@
 import java.io.File
 import java.util.PriorityQueue
 
-class Cavern(input: List<String>, grow: Boolean = false) {
+class Cavern(riskLevels: List<String>, grow: Boolean = false) {
     private class Waypoint(val riskLevel: Int) {
         val neighbors = mutableSetOf<Waypoint>()
     }
 
     private val waypoints: List<Waypoint>
-    private val origin: Waypoint
-    private val destination: Waypoint
+    private val origin get() = waypoints.first()
+    private val destination get() = waypoints.last()
+
+    companion object {
+        private fun wrapAround(v: Int): Int {
+            // 1..9 stay the same, 10 becomes 1 again, 11 becomes 2, etc.
+            return if (v > 9) v % 9 else v
+        }
+    }
 
     init {
-        var values = input.map { line -> line.trim().map { c -> c.digitToInt() } }
+        var values = riskLevels.map { line -> line.trim().map { c -> c.digitToInt() } }
 
         // Replicate grid?
         if (grow) {
             val valuesX = values.map { it.toMutableList() }
             for (offset in 1..4) {
                 for (i in valuesX.indices) {
-                    valuesX[i].addAll(
-                        values[i].map { (it + offset).let { v -> if (v > 9) v % 9 else v } }
-                    )
+                    valuesX[i].addAll(values[i].map { wrapAround(it + offset) })
                 }
             }
 
             val valuesXY = valuesX.toMutableList()
             for (offset in 1..4) {
                 for (row in valuesX) {
-                    valuesXY.add(
-                        row.map { (it + offset).let { v -> if (v > 9) v % 9 else v } }.toMutableList()
-                    )
+                    valuesXY.add(row.map { wrapAround(it + offset) }.toMutableList())
                 }
             }
 
@@ -48,15 +51,12 @@ class Cavern(input: List<String>, grow: Boolean = false) {
             }
         } }
 
-        // Turn into flat list and mark special nodes
         waypoints = grid.flatten()
-        origin = waypoints.first()
-        destination = waypoints.last()
     }
 
     fun findLeastRiskyPath(): Int? {
         // Use priority queue to traverse the graph
-        val traversed = mutableSetOf<Waypoint>()
+        val reached = mutableSetOf<Waypoint>()
         val risks = mutableMapOf<Waypoint, Int>()
         val queue = PriorityQueue<Waypoint>(compareBy { risks[it] ?: Int.MAX_VALUE })
 
@@ -70,17 +70,18 @@ class Cavern(input: List<String>, grow: Boolean = false) {
                 ?: throw IllegalStateException("Waypoint in queue but not in risks table")
 
             // If we have reached the destination, we can stop
-            traversed.add(waypoint)
             if (waypoint == destination) {
                 return totalRisk
             }
 
-            waypoint.neighbors.filter { it !in traversed }.forEach {
+            // Can we reach any neighbors at a lower total risk?
+            reached.add(waypoint)
+            waypoint.neighbors.filter { it !in reached }.forEach {
                 val risk = totalRisk + it.riskLevel
                 if (risk < (risks[it] ?: Int.MAX_VALUE)) {
                     risks[it] = risk
 
-                    // Re-add element to update sorting in the queue
+                    // Re-add element to update position in the queue
                     queue.remove(it)
                     queue.add(it)
                 }
@@ -93,11 +94,11 @@ class Cavern(input: List<String>, grow: Boolean = false) {
 }
 
 fun main() {
-    val input = File("inputs", "day15.txt").readLines()
+    val riskLevels = File("inputs", "day15.txt").readLines()
 
-    val smallCavern = Cavern(input)
+    val smallCavern = Cavern(riskLevels)
     println(smallCavern.findLeastRiskyPath())
 
-    val largeCavern = Cavern(input, grow = true)
+    val largeCavern = Cavern(riskLevels, grow = true)
     println(largeCavern.findLeastRiskyPath())
 }
