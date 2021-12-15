@@ -4,31 +4,11 @@ import java.util.PriorityQueue
 class Cavern(input: List<String>, grow: Boolean = false) {
     private class Waypoint(val riskLevel: Int) {
         val neighbors = mutableSetOf<Waypoint>()
-
-        private enum class WaypointType {
-            ORIGIN, WAYPOINT, DESTINATION
-        }
-
-        private var type = WaypointType.WAYPOINT
-
-        fun makeOrigin() {
-            type = WaypointType.ORIGIN
-        }
-
-        fun makeDestination() {
-            type = WaypointType.DESTINATION
-        }
-
-        fun isOrigin(): Boolean {
-            return type == WaypointType.ORIGIN
-        }
-
-        fun isDestination(): Boolean {
-            return type == WaypointType.DESTINATION
-        }
     }
 
     private val waypoints: List<Waypoint>
+    private val origin: Waypoint
+    private val destination: Waypoint
 
     init {
         var values = input.map { line -> line.trim().map { c -> c.digitToInt() } }
@@ -70,8 +50,8 @@ class Cavern(input: List<String>, grow: Boolean = false) {
 
         // Turn into flat list and mark special nodes
         waypoints = grid.flatten()
-        waypoints.first().makeOrigin()
-        waypoints.last().makeDestination()
+        origin = waypoints.first()
+        destination = waypoints.last()
     }
 
     fun findLeastRiskyPath(): Int? {
@@ -79,7 +59,6 @@ class Cavern(input: List<String>, grow: Boolean = false) {
         val traversed = mutableSetOf<Waypoint>()
         val risks = mutableMapOf<Waypoint, Int>()
         val queue = PriorityQueue<Waypoint>(compareBy { risks[it] ?: Int.MAX_VALUE })
-        val origin = waypoints.single { it.isOrigin() }
 
         risks[origin] = 0
         queue.add(origin)
@@ -92,7 +71,7 @@ class Cavern(input: List<String>, grow: Boolean = false) {
 
             // If we have reached the destination, we can stop
             traversed.add(waypoint)
-            if (waypoint.isDestination()) {
+            if (waypoint == destination) {
                 return totalRisk
             }
 
