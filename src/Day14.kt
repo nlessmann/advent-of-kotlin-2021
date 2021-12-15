@@ -57,7 +57,7 @@ class Polymer(filename: String) {
             lut[evolution] = counts
         }
 
-        return lut[evolution] ?: throw IllegalStateException()
+        return lut[evolution]!!
     }
 }
 

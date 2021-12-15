@@ -58,7 +58,7 @@ class Cavern(riskLevels: List<String>, grow: Boolean = false) {
         // Use priority queue to traverse the graph
         val reached = mutableSetOf<Waypoint>()
         val risks = mutableMapOf<Waypoint, Int>()
-        val queue = PriorityQueue<Waypoint>(compareBy { risks[it] ?: Int.MAX_VALUE })
+        val queue = PriorityQueue<Waypoint>(compareBy { risks[it]!! })
 
         risks[origin] = 0
         queue.add(origin)
@@ -66,8 +66,7 @@ class Cavern(riskLevels: List<String>, grow: Boolean = false) {
         while (queue.isNotEmpty()) {
             // Remove waypoint with the lowest total risk level
             val waypoint = queue.remove()
-            val totalRisk = risks[waypoint]
-                ?: throw IllegalStateException("Waypoint in queue but not in risks table")
+            val totalRisk = risks[waypoint]!!
 
             // If we have reached the destination, we can stop
             if (waypoint == destination) {
