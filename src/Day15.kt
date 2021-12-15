@@ -11,9 +11,9 @@ class Cavern(riskLevels: List<String>, grow: Boolean = false) {
     private val destination get() = waypoints.last()
 
     companion object {
-        private fun wrapAround(v: Int): Int {
+        private fun wrapDigitAround(v: Int): Int {
             // 1..9 stay the same, 10 becomes 1 again, 11 becomes 2, etc.
-            return if (v > 9) v % 9 else v
+            return (v - 1) % 9 + 1
         }
     }
 
@@ -25,14 +25,14 @@ class Cavern(riskLevels: List<String>, grow: Boolean = false) {
             val valuesX = values.map { it.toMutableList() }
             for (offset in 1..4) {
                 for (i in valuesX.indices) {
-                    valuesX[i].addAll(values[i].map { wrapAround(it + offset) })
+                    valuesX[i].addAll(values[i].map { wrapDigitAround(it + offset) })
                 }
             }
 
             val valuesXY = valuesX.toMutableList()
             for (offset in 1..4) {
                 for (row in valuesX) {
-                    valuesXY.add(row.map { wrapAround(it + offset) }.toMutableList())
+                    valuesXY.add(row.map { wrapDigitAround(it + offset) }.toMutableList())
                 }
             }
 
