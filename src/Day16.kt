@@ -3,7 +3,7 @@ import java.io.File
 class Packet(bits: Word) {
     private val version = binaryToDecimal(bits.subList(0, 3))
     private val type = binaryToDecimal(bits.subList(3, 6))
-    private val operands: List<Packet>
+    private val operands = mutableListOf<Packet>()
 
     val value: Long
 
@@ -13,7 +13,7 @@ class Packet(bits: Word) {
         var payload = bits.subList(6, bits.size).toList()
 
         if (type == 4) {
-            // Parse content in blocks of 5 bits
+            // Literal: parse content in blocks of 5 bits
             val content = mutableListOf<Int>()
             while (payload.size >= 5) {
                 val lastByte = (payload.first() == 0)
@@ -25,13 +25,8 @@ class Packet(bits: Word) {
 
             value = content.joinToString("").toLong(2)
             unconsumedPayload = payload.toList()
-            operands = listOf()
         } else {
-            // Parse operator depending on content length type
-            val lengthType = payload.first()
-            val packets = mutableListOf<Packet>()
-
-            if (lengthType == 0) {
+            if (payload.first() == 0) {
                 // Total length of payload is given
                 val length = binaryToDecimal(payload.subList(1, 16))
                 unconsumedPayload = payload.subList(16 + length, payload.size).toList()
@@ -39,23 +34,22 @@ class Packet(bits: Word) {
 
                 while (payload.any { it != 0 }) {
                     val packet = Packet(payload)
-                    packets.add(packet)
+                    operands.add(packet)
                     payload = packet.unconsumedPayload
                 }
             } else {
                 // Number of sub-packets is given
                 val n = binaryToDecimal(payload.subList(1, 12))
                 payload = payload.subList(12, payload.size)
+
                 for (i in 1..n) {
                     val packet = Packet(payload)
-                    packets.add(packet)
+                    operands.add(packet)
                     payload = packet.unconsumedPayload
                 }
 
                 unconsumedPayload = payload.toList()
             }
-
-            operands = packets
 
             // Compute value
             value = when (type) {
