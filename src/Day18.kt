@@ -1,26 +1,23 @@
 import java.io.File
-import kotlin.math.ceil
 
 class SnailfishNumber(private val values: List<Int>, private val depths: List<Int>) {
     fun magnitude(): Int {
         return if (depths.isEmpty()) {
             // Single value
             values[0]
-        } else if (depths.size == 1) {
-            // Pair of two values
-            3 * values[0] + 2 * values[1]
         } else {
-            // Pair that contains more pairs, so split up into two new
-            // numbers and use their magnitudes in the formula
+            // Pair of values, split up into two new numbers and
+            // use their magnitudes in the formula 3a+2b
             val index = depths.indexOf(1)
 
-            val newValuesA = values.subList(0, index + 1)
-            val newDepthsA = depths.subList(0, index).map { it - 1 }
-            val a = SnailfishNumber(newValuesA, newDepthsA)
-
-            val newValuesB = values.subList(index + 1, values.size)
-            val newDepthsB = depths.subList(index + 1, depths.size).map { it - 1 }
-            val b = SnailfishNumber(newValuesB, newDepthsB)
+            val a = SnailfishNumber(
+                values.subList(0, index + 1),
+                depths.subList(0, index).map { it - 1 }
+            )
+            val b = SnailfishNumber(
+                values.subList(index + 1, values.size),
+                depths.subList(index + 1, depths.size).map { it - 1 }
+            )
 
             3 * a.magnitude() + 2 * b.magnitude()
         }
@@ -31,15 +28,15 @@ class SnailfishNumber(private val values: List<Int>, private val depths: List<In
         if (index < 0) return this
 
         // Add values of the offending pair to its neighbors, replace with 0
-        val newValues = values.mapIndexed { i, value ->
+        val newValues = values.mapIndexedNotNull { i, value ->
             when (i) {
                 index - 1 -> value + values[index]
+                index -> 0
+                index + 1 -> null
                 index + 2 -> value + values[index + 1]
                 else -> value
             }
-        }.toMutableList()
-        newValues[index] = 0
-        newValues.removeAt(index + 1)
+        }
 
         // Remove depth entry of the removed pair
         val newDepths = depths.toMutableList()
@@ -55,7 +52,7 @@ class SnailfishNumber(private val values: List<Int>, private val depths: List<In
         // Replace offending value with a new pair with half of the value
         val newValues = values.toMutableList()
         newValues[index] = values[index] / 2
-        newValues.add(index + 1, ceil(values[index] / 2.0).toInt())
+        newValues.add(index + 1, values[index] - newValues[index])
 
         // Add depth of the new pair (depth of the value + 1)
         val newDepth = when (index) {

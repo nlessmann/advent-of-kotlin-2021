@@ -1,4 +1,5 @@
 import java.io.File
+import kotlin.math.sign
 
 class TargetArea(definition: String) {
     val x: IntRange
@@ -41,8 +42,8 @@ class Probe(var xVelocity: Int, var yVelocity: Int) {
         y += yVelocity
 
         // Due to drag, the probe's x velocity changes by 1 toward the value 0.
-        if (xVelocity > 0) {
-            xVelocity--
+        if (xVelocity != 0) {
+            xVelocity -= xVelocity.sign
         }
 
         // Due to gravity, the probe's y velocity decreases by 1.
