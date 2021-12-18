@@ -29,7 +29,7 @@ class TargetArea(definition: String) {
     }
 }
 
-data class Probe(var xVelocity: Int, var yVelocity: Int) {
+class Probe(var xVelocity: Int, var yVelocity: Int) {
     var x = 0
     var y = 0
 
