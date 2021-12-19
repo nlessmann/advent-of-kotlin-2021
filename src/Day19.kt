@@ -1,7 +1,7 @@
 import java.io.File
 import kotlin.math.absoluteValue
 
-class Vector(val x: Int, val y: Int, val z: Int) {
+data class Vector(val x: Int, val y: Int, val z: Int) {
     private fun differences(other: Vector): Iterable<Int> {
         return listOf(x - other.x, y - other.y, z - other.z)
     }
@@ -20,21 +20,6 @@ class Vector(val x: Int, val y: Int, val z: Int) {
 
     operator fun minus(other: Vector): Vector {
         return Vector(x - other.x, y - other.y, z - other.z)
-    }
-
-    override fun equals(other: Any?): Boolean {
-        return if (other is Vector) {
-            x == other.x && y == other.y && z == other.z
-        } else {
-            super.equals(other)
-        }
-    }
-
-    override fun hashCode(): Int {
-        var result = x
-        result = 31 * result + y
-        result = 31 * result + z
-        return result
     }
 }
 
@@ -70,7 +55,7 @@ class FlipMatrix(x: List<Int>, y: List<Int>) {
     }
 }
 
-class Perspective(val offset: Vector, val rotation: FlipMatrix) {
+class Transformation(val offset: Vector, val rotation: FlipMatrix) {
     fun transform(vector: Vector): Vector {
         return rotation * vector + offset
     }
@@ -109,7 +94,7 @@ class Scanner(input: List<String>) {
     val beacons: List<Vector>
 
     private val trios: List<BeaconTrio>
-    private val perspectives = mutableListOf<Perspective>()
+    private val transforms = mutableListOf<Transformation>()
 
     init {
         // Extract scanner ID from the first line
@@ -166,8 +151,8 @@ class Scanner(input: List<String>) {
         for (orientation in orientations) {
             val offset = findOffset(matchingBeaconsA, matchingBeaconsB, orientation)
             if (offset != null) {
-                perspectives.addAll(other.perspectives)
-                perspectives.add(Perspective(offset, orientation))
+                transforms.addAll(other.transforms)
+                transforms.add(Transformation(offset, orientation))
                 return true
             }
         }
@@ -178,13 +163,13 @@ class Scanner(input: List<String>) {
     fun transform(): Vector {
         // Return scanner location relative to reference scanner
         val origin = Vector(0, 0, 0)
-        return perspectives.reversed().fold(origin) { v, p -> p.transform(v) }
+        return transforms.reversed().fold(origin) { v, p -> p.transform(v) }
     }
 
     fun transformBeacons(): List<Vector> {
         // Return beacon locations relative to reference scanner
         return beacons.map {
-            perspectives.reversed().fold(it) { v, p -> p.transform(v) }
+            transforms.reversed().fold(it) { v, p -> p.transform(v) }
         }
     }
 
@@ -216,15 +201,13 @@ fun parseScannerData(filename: String): List<Scanner> {
     val input = File(filename).readLines()
 
     // Find indices of lines that specify the scanner ID
-    val indices = input
-        .mapIndexedNotNull { index, line ->
-            if (line.startsWith("---")) index else null
-        }.toMutableList()
+    val indices = input.mapIndexedNotNull { index, line ->
+        if (line.startsWith("---")) index else null
+    }.toMutableList()
 
     // Add index at the end, chop into chunks and convert into scanner instances
     indices.add(input.size + 1)
-    return indices
-        .windowed(2)
+    return indices.windowed(2)
         .map { (i, j) -> input.subList(i, j - 1) }
         .map { Scanner(it) }
 }
@@ -234,20 +217,22 @@ fun main() {
 
     // Match scanning results with each other
     val referenceScanners = mutableListOf(scanners[0])
-    val located = scanners.associateWith { it in referenceScanners }.toMutableMap()
+    val located = referenceScanners.toMutableSet()
 
-    while (located.values.any { !it }) {
+    while (located.size < scanners.size) {
         val referenceScanner = referenceScanners.removeFirst()
-        for (scanner in scanners.filter { !located[it]!! }) {
+        for (scanner in scanners.filter { it !in located }) {
             if (scanner.alignWith(referenceScanner)) {
                 println("Found scanner-to-scanner transformation: ${scanner.id} -> ${referenceScanner.id}")
-                located[scanner] = true
+                located.add(scanner)
                 referenceScanners.add(scanner)
             }
         }
 
-        println("Still need to find ${located.values.count { !it }} transformations" )
+        println("Still need to find ${scanners.size - located.size} transformations" )
     }
+
+    println("----------")
 
     // Transform all beacons and determine number of unique beacons
     val beacons = scanners.map { it.transformBeacons() }.flatten().distinct()
