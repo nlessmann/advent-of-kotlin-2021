@@ -145,8 +145,8 @@ class Scanner(input: List<String>) {
             trios.singleOrNull { b -> a == b }?.let { b -> a to b }
         }
 
-        val matchingBeaconsA = matches.map { it.first.beacons }.flatten().distinct()
-        val matchingBeaconsB = matches.map { it.second.beacons }.flatten().distinct()
+        val matchingBeaconsA = matches.flatMap { it.first.beacons }.distinct()
+        val matchingBeaconsB = matches.flatMap { it.second.beacons }.distinct()
 
         for (orientation in orientations) {
             val offset = findOffset(matchingBeaconsA, matchingBeaconsB, orientation)
@@ -219,7 +219,7 @@ fun main() {
     val referenceScanners = mutableListOf(scanners[0])
     val located = referenceScanners.toMutableSet()
 
-    while (located.size < scanners.size) {
+    while (located.size < scanners.size && referenceScanners.isNotEmpty()) {
         val referenceScanner = referenceScanners.removeFirst()
         for (scanner in scanners.filter { it !in located }) {
             if (scanner.alignWith(referenceScanner)) {
@@ -235,7 +235,7 @@ fun main() {
     println("----------")
 
     // Transform all beacons and determine number of unique beacons
-    val beacons = scanners.map { it.transformBeacons() }.flatten().distinct()
+    val beacons = scanners.flatMap { it.transformBeacons() }.distinct()
     println("Solution 1: ${beacons.size}")
 
     // Transform all scanner locations and find maximum scanner distance
