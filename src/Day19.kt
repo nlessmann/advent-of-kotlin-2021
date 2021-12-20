@@ -7,11 +7,11 @@ data class Vector(val x: Int, val y: Int, val z: Int) {
     }
 
     fun squaredDistanceTo(other: Vector): Long {
-        return differences(other).fold(0) { sum, v -> sum + (v * v) }
+        return differences(other).sumOf { (it * it).toLong() }
     }
 
     fun manhattanDistanceTo(other: Vector): Long {
-        return differences(other).fold(0) { sum, v -> sum + v.absoluteValue }
+        return differences(other).sumOf { it.absoluteValue.toLong() }
     }
 
     operator fun plus(other: Vector): Vector {
