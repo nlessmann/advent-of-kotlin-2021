@@ -17,15 +17,21 @@ class Player(initialPosition: Int) {
     }
 }
 
-class DeterministicDice {
+interface Dice {
+    // Compute a score from two initial positions a and b
+    fun roll(a: Int, b: Int): Long
+}
+
+class DeterministicDice : Dice {
     private var throws = 0
 
-    fun roll(a: Int, b: Int): Long {
+    override fun roll(a: Int, b: Int): Long {
         return roll(Player(a), Player(b))
     }
 
     private fun roll(a: Player, b: Player): Long {
-        a.move(3 * (throws + 2))  // Next three throws are t+1 + t+2 + t+3
+        // Next three throws are t+1 + t+2 + t+3 = 3t+6
+        a.move(3 * throws + 6)
         throws += 3
 
         return if (a.points >= 1000) {
@@ -36,15 +42,15 @@ class DeterministicDice {
     }
 }
 
-class WinCounter(var a: Long = 0, var b: Long = 0) {
-    fun max(): Long {
-        return maxOf(a, b)
+class DiracDice : Dice {
+    private class WinCounter(var a: Long = 0, var b: Long = 0) {
+        fun max(): Long {
+            return maxOf(a, b)
+        }
     }
-}
 
-class DiracDice {
-    fun roll(a: Int, b: Int): WinCounter {
-        return roll(Player(a), Player(b))
+    override fun roll(a: Int, b: Int): Long {
+        return roll(Player(a), Player(b)).max()
     }
 
     private fun roll(a: Player, b: Player): WinCounter {
@@ -58,7 +64,7 @@ class DiracDice {
                 wins.a += outcome.frequency
             } else {
                 // Active player did not win yet, so make other player the active
-                // player and continue with the next throw (check LUT first though)
+                // player and continue with the next set of throws
                 val swappedWins = roll(b, player)
                 wins.a += outcome.frequency * swappedWins.b
                 wins.b += outcome.frequency * swappedWins.a
@@ -89,11 +95,9 @@ fun main() {
     val input = File("inputs", "day21.txt").readLines()
     val positions = input.map { it.substringAfter(':').trim().toInt() }
 
-    val die1 = DeterministicDice()
-    val score = die1.roll(positions[0], positions[1])
-    println("Solution 1: $score")
-
-    val die2 = DiracDice()
-    val wins = die2.roll(positions[0], positions[1])
-    println("Solution 2: ${wins.max()}")
+    val dice = listOf(DeterministicDice(), DiracDice())
+    dice.forEachIndexed { i, die ->
+        val score = die.roll(positions[0], positions[1])
+        println("Solution ${i + 1}: $score")
+    }
 }
