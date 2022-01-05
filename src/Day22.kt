@@ -1,39 +1,46 @@
 import java.io.File
 
-class Cuboid(val x: IntRange, val y: IntRange, val z: IntRange, val sign: Int) {
-    private val ranges = listOf(x, y, z)
+class Zone(x: IntRange, y: IntRange, z: IntRange, private val sign: Int) {
+    private val corners = listOf(x, y, z)
 
-    fun isInitStep(): Boolean {
-        return ranges.all { it.all { i -> i in -50..50 } }
+    fun isPositive(): Boolean {
+        return sign > 0
     }
 
-    fun isEmpty(): Boolean {
-        return x.isEmpty() || y.isEmpty() || z.isEmpty()
+    fun isInitStep(): Boolean {
+        // Initialization steps are zones entirely within -50 to 50
+        return corners.all { it.all { i -> i in -50..50 } }
     }
 
     fun signedVolume(): Long {
-        val volume = ranges.map { it.last - it.first + 1L }.reduce { a, b -> a * b }
+        // Volume of the zone combined with its sign
+        val volume = corners.map { it.last - it.first + 1L }.reduce { a, b -> a * b }
         return sign * volume
     }
 
-    fun intersection(other: Cuboid): Cuboid {
-        val corners = ranges.zip(other.ranges).map { (a, b) ->
+    fun intersection(other: Zone): Zone? {
+        val corners = corners.zip(other.corners).map { (a, b) ->
             maxOf(a.first, b.first)..minOf(a.last, b.last)
         }
-        return Cuboid(corners[0], corners[1], corners[2], -other.sign)
+        if (corners.any { it.isEmpty() }) {
+            return null
+        }
+
+        return Zone(corners[0], corners[1], corners[2], -other.sign)
     }
 }
 
-fun rebootReactor(instructions: List<Cuboid>): Long {
-    val zones = mutableListOf<Cuboid>()
-    for (cube in instructions) {
+fun rebootReactor(instructions: List<Zone>): Long {
+    val zones = mutableListOf<Zone>()
+    for (zone in instructions) {
         zones.addAll(buildList {
-            if (cube.sign > 0) {
-                add(cube)
+            // Add positive zones only
+            if (zone.isPositive()) {
+                add(zone)
             }
 
-            val intersections = zones.map { cube.intersection(it) }
-            intersections.filter { !it.isEmpty() }.forEach { add(it) }
+            // Add intersections with prior zones
+            zones.mapNotNull { zone.intersection(it) }.forEach { add(it) }
         })
     }
 
@@ -43,8 +50,8 @@ fun rebootReactor(instructions: List<Cuboid>): Long {
 fun main() {
     val instructions = File("inputs", "day22.txt").readLines().map { line ->
         val sign = if (line.startsWith("on")) 1 else -1
-        val n = Regex("[0-9-]+").findAll(line).map { it.value.toInt() }.toList()
-        Cuboid(n[0]..n[1], n[2]..n[3], n[4]..n[5], sign)
+        val c = Regex("[0-9-]+").findAll(line).map { it.value.toInt() }.toList()
+        Zone(c[0]..c[1], c[2]..c[3], c[4]..c[5], sign)
     }
 
     println("Solution 1: ${rebootReactor(instructions.filter { it.isInitStep() })}")
