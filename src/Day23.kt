@@ -8,7 +8,7 @@ data class Room(val owner: Char, val content: List<Char>) {
         return content.all { it == owner }
     }
 
-    fun hasStranger(): Boolean {
+    fun hasStrangers(): Boolean {
         // Are there amphipods in this room that are not supposed to be here?
         return content.any { it != owner && it != '.' }
     }
@@ -18,21 +18,22 @@ data class Room(val owner: Char, val content: List<Char>) {
         return content.withIndex().first { it.value != '.' }
     }
 
-    fun countFreeCapacity(): Int {
+    fun countFreeSlots(): Int {
         // Number of amphipods that can still fit into this room
         return content.count { it == '.' }
     }
 
-    operator fun plus(amphipod: Char): Room {
+    fun push(): Room {
+        // Add a new amphipod of the owner-type to the room
         val newContent = content.toMutableList()
-        val y = newContent.lastIndexOf('.')
-        newContent[y] = amphipod
+        newContent[newContent.lastIndexOf('.')] = owner
         return Room(owner, newContent)
     }
 
-    operator fun minus(index: Int): Room {
+    fun pop(): Room {
+        // Remove the first amphipod in the room
         val newContent = content.toMutableList()
-        newContent[index] = '.'
+        newContent[first().index] = '.'
         return Room(owner, newContent)
     }
 }
@@ -42,7 +43,7 @@ data class Burrow(val hallway: List<Char>, val rooms: Map<Int, Room>) {
         rooms.forEach { (x, room) -> put(room.owner, x) }
     }
 
-    private fun verifyHallwayPath(from: Int, to: Int): Boolean {
+    private fun isClearHallwayPath(from: Int, to: Int): Boolean {
         val indices = if (from < to) {
             (from + 1) until (to + 1)
         } else {
@@ -62,24 +63,25 @@ data class Burrow(val hallway: List<Char>, val rooms: Map<Int, Room>) {
     private fun possibleMoves(): List<Move> {
         return buildList {
             // Room to Hallway
-            for (x in hallway.indices) {
-                val room = rooms[x] ?: continue
-                if (!room.hasStranger()) continue
+            for (x in destinations.values) {
+                val room = rooms.getValue(x)
+                if (!room.hasStrangers()) continue
 
                 // First amphipod in a room with a stranger
                 val (y, amphipod) = room.first()
 
                 // Add all possible moves to the hallway to the list
                 hallway.forEachIndexed { xx, c ->
-                    if (c == '.' && verifyHallwayPath(x, xx)) {
+                    if (c == '.' && isClearHallwayPath(x, xx)) {
                         val steps = y + 1 + (x - xx).absoluteValue
 
                         val newHallway = hallway.toMutableList()
                         newHallway[xx] = amphipod
                         val newRooms = rooms.toMutableMap()
-                        newRooms[x] = room - y
+                        newRooms[x] = room.pop()
+                        val burrow = Burrow(newHallway, newRooms)
 
-                        add(Move(Burrow(newHallway, newRooms), steps, amphipod))
+                        add(Move(burrow, steps, amphipod))
                     }
                 }
             }
@@ -88,15 +90,16 @@ data class Burrow(val hallway: List<Char>, val rooms: Map<Int, Room>) {
             hallway.withIndex().filter { it.value.isLetter() }.forEach { (x, amphipod) ->
                 val xx = destinations.getValue(amphipod)
                 val room = rooms.getValue(xx)
-                if (!room.hasStranger() && verifyHallwayPath(x, xx)) {
-                    val steps = room.countFreeCapacity() + (x - xx).absoluteValue
+                if (!room.hasStrangers() && isClearHallwayPath(x, xx)) {
+                    val steps = room.countFreeSlots() + (x - xx).absoluteValue
 
                     val newHallway = hallway.toMutableList()
                     newHallway[x] = '.'
                     val newRooms = rooms.toMutableMap()
-                    newRooms[xx] = room + amphipod
+                    newRooms[xx] = room.push()
+                    val burrow = Burrow(newHallway, newRooms)
 
-                    add(Move(Burrow(newHallway, newRooms), steps, amphipod))
+                    add(Move(burrow, steps, amphipod))
                 }
             }
         }
@@ -120,13 +123,12 @@ data class Burrow(val hallway: List<Char>, val rooms: Map<Int, Room>) {
             val burrow = queue.remove()
             val totalCost = costs.getValue(burrow)
 
-            // If we have found a way to organize the burrow, we can stop
-            if (burrow.isOrganized()) {
-                return totalCost
-            }
+            // For better efficiency, we allow duplicates in the priority queue,
+            // so this configuration might have been visited before at lower cost
+            if (burrow in reached) continue
+            reached.add(burrow)
 
             // Add possible moves from this state to the queue
-            reached.add(burrow)
             burrow.possibleMoves().filter { it.burrow !in reached }.forEach {
                 val cost = totalCost + it.cost
                 if (cost < (costs[it.burrow] ?: Int.MAX_VALUE)) {
@@ -136,7 +138,7 @@ data class Burrow(val hallway: List<Char>, val rooms: Map<Int, Room>) {
             }
         }
 
-        return null
+        return costs.filter { (burrow, _) -> burrow.isOrganized() }.minOfOrNull { (_, cost) -> cost }
     }
 
     companion object {
