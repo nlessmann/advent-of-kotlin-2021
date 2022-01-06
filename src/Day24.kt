@@ -42,7 +42,7 @@ class ModelNumberFinder(filename: String) {
         val modelNumber = StringBuilder()
         val knownDigits = pushDigits.toMutableList()
 
-        var z = 0
+        var z = 0L
         for (instruction in instructions) {
             if (instruction.push) {
                 // Assume x == 1 (i.e. z + xAdd != w) because xAdd is always >= 10
@@ -54,12 +54,12 @@ class ModelNumberFinder(filename: String) {
                 val w = (z % 26) + instruction.xAdd
                 if (w !in 1..9) return null
 
-                z = truncate(z / 26.0).toInt()
+                z = truncate(z / 26.0).toLong()
                 modelNumber.append(w)
             }
         }
 
-        return if (z == 0) modelNumber.toString() else null
+        return if (z == 0L) modelNumber.toString() else null
     }
 
     private fun firstValidNumber(pushDigits: IntProgression): String? {
