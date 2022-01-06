@@ -9,7 +9,7 @@ class ModelNumberFinder(filename: String) {
     private val instructions: List<Instruction>
 
     private fun extractDigitFromLine(line: String): Int {
-        val match = Regex("[-0-9]+").find(line)!!
+        val match = Regex("[-0-9]+").find(line) ?: throw NoSuchElementException()
         return match.value.toInt()
     }
 
@@ -35,6 +35,9 @@ class ModelNumberFinder(filename: String) {
     }
 
     private fun completeNumber(pushDigits: String): String? {
+        // Zeros are not allowed, so those attempts are invalid anyway
+        if ('0' in pushDigits) return null
+
         // Take digits for push instructions and find corresponding pop instructions
         val modelNumber = StringBuilder()
         val knownDigits = pushDigits.toMutableList()
@@ -59,30 +62,12 @@ class ModelNumberFinder(filename: String) {
         return if (z == 0) modelNumber.toString() else null
     }
 
-    private fun firstValidNumber(pushDigits: Sequence<String>): String? {
-        // Return first valid model number that can constructed from the half numbers
-        return pushDigits.firstNotNullOfOrNull { completeNumber(it) }
+    private fun firstValidNumber(pushDigits: IntProgression): String? {
+        return pushDigits.firstNotNullOfOrNull { completeNumber(it.toString()) }
     }
 
-    fun findSmallestNumber(): String? {
-        return firstValidNumber(sequence {
-            var n = 1111111
-            do {
-                val s = n.toString()
-                if ('0' !in s) yield(s)
-            } while (n++ < 9999999)
-        })
-    }
-
-    fun findLargestNumber(): String? {
-        return firstValidNumber(sequence {
-            var n = 9999999
-            do {
-                val s = n.toString()
-                if ('0' !in s) yield(s)
-            } while (n-- > 1111111)
-        })
-    }
+    fun findSmallestNumber(): String? = firstValidNumber(1111111..9999999)
+    fun findLargestNumber(): String? = firstValidNumber(9999999 downTo 1111111)
 }
 
 fun main() {
