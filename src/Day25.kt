@@ -10,15 +10,18 @@ class SeaFloor(filename: String) {
 
         fun canMoveOccupant(): Boolean {
             // No occupant, nothing to do
-            if (occupant == null) return false
+            val occupant = occupant ?: return false
 
             // Check whether target tile is already occupied
-            return neighbors.getValue(occupant!!).occupant == null
+            return neighbors.getValue(occupant).occupant == null
         }
 
         fun moveOccupant() {
-            neighbors.getValue(occupant!!).occupant = occupant
-            occupant = null
+            val movingSeaCucumber = occupant
+            if (movingSeaCucumber != null) {
+                neighbors.getValue(movingSeaCucumber).occupant = movingSeaCucumber
+                occupant = null
+            }
         }
     }
 
